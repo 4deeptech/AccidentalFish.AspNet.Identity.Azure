@@ -13,7 +13,8 @@ namespace AccidentalFish.AspNet.Identity.Azure
         {
             UserId = userId;
             LoginProvider = loginProvider;
-            ProviderKey = providerKey;
+            //DMF RowKey cannot have certain characters in it!!!
+            ProviderKey = providerKey.Replace("/", "").Replace("\\", "").Replace("#", "").Replace("?", "");
 
             SetPartitionAndRowKey();
         }
@@ -21,6 +22,7 @@ namespace AccidentalFish.AspNet.Identity.Azure
         public void SetPartitionAndRowKey()
         {
             PartitionKey = UserId;
+            //DMF RowKey cannot have certain characters in it!!!
             RowKey = ProviderKey;
         }
 

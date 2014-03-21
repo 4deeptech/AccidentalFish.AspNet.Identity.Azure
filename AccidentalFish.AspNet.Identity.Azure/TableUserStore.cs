@@ -165,7 +165,7 @@ namespace AccidentalFish.AspNet.Identity.Azure
         public async Task<T> FindAsync(UserLoginInfo login)
         {
             if (login == null) throw new ArgumentNullException("login");
-            string providerKeyQuery = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, login.ProviderKey);
+            string providerKeyQuery = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, login.ProviderKey.Replace("/", "").Replace("\\", "").Replace("#", "").Replace("?", ""));
             string loginProviderQuery = TableQuery.GenerateFilterCondition("LoginProvider", QueryComparisons.Equal, login.LoginProvider);
             string combinedQuery = TableQuery.CombineFilters(providerKeyQuery, TableOperators.And, loginProviderQuery);
 
@@ -248,7 +248,8 @@ namespace AccidentalFish.AspNet.Identity.Azure
 
             while (querySegment == null || querySegment.ContinuationToken != null)
             {
-                querySegment = await _claimsTable.ExecuteQuerySegmentedAsync(query, querySegment != null ? querySegment.ContinuationToken : null);
+                //querySegment = await _claimsTable.ExecuteQuerySegmentedAsync(query, querySegment != null ? querySegment.ContinuationToken : null);
+                querySegment = await _rolesTable.ExecuteQuerySegmentedAsync(query, querySegment != null ? querySegment.ContinuationToken : null);
                 claims.AddRange(querySegment.Results.Select(x => x.Name));
             }
 

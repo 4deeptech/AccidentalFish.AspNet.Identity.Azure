@@ -1,20 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using AccidentalFish.AspNet.Identity.Azure;
+﻿using AccidentalFish.AspNet.Identity.Azure;
 using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
-using WebAPI2AuthenticationExample.Web.Providers;
+using System;
+using System.Configuration;
 
-namespace WebAPI2AuthenticationExample.Web
+namespace MVC.AuthTestApp
 {
     public partial class Startup
     {
+        public static OAuthAuthorizationServerOptions OAuthOptions { get; private set; }
+
+        //public static Func<UserManager<IdentityUser>> UserManagerFactory { get; set; }
+        public static Func<UserManager<TableUser>> UserManagerFactory { get; set; }
+
+        public static string PublicClientId { get; private set; }
+
         static Startup()
         {
             PublicClientId = "self";
@@ -25,32 +28,25 @@ namespace WebAPI2AuthenticationExample.Web
 
             OAuthOptions = new OAuthAuthorizationServerOptions
             {
-                TokenEndpointPath = new PathString("/Token"),
+                //TokenEndpointPath = new PathString("/Token"),
                 //Provider = new ApplicationOAuthProvider(PublicClientId, UserManagerFactory),
                 Provider = new GenericApplicationOAuthProvider<TableUser>(PublicClientId, UserManagerFactory),
-                AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
+                //AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
                 AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
                 AllowInsecureHttp = true
             };
         }
-
-        public static OAuthAuthorizationServerOptions OAuthOptions { get; private set; }
-
-        //public static Func<UserManager<IdentityUser>> UserManagerFactory { get; set; }
-        public static Func<UserManager<TableUser>> UserManagerFactory { get; set; }
-
-        public static string PublicClientId { get; private set; }
-
         // For more information on configuring authentication, please visit http://go.microsoft.com/fwlink/?LinkId=301864
         public void ConfigureAuth(IAppBuilder app)
         {
             // Enable the application to use a cookie to store information for the signed in user
-            // and to use a cookie to temporarily store information about a user logging in with a third party login provider
-            app.UseCookieAuthentication(new CookieAuthenticationOptions());
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                LoginPath = new PathString("/Account/Login")
+            });
+            // Use a cookie to temporarily store information about a user logging in with a third party login provider
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
-
-            // Enable the application to use bearer tokens to authenticate users
-            app.UseOAuthBearerTokens(OAuthOptions);
 
             // Uncomment the following lines to enable logging in with third party login providers
             //app.UseMicrosoftAccountAuthentication(
@@ -58,12 +54,12 @@ namespace WebAPI2AuthenticationExample.Web
             //    clientSecret: "");
 
             //app.UseTwitterAuthentication(
-            //    consumerKey: "",
-            //    consumerSecret: "");
+            //   consumerKey: "",
+            //   consumerSecret: "");
 
             //app.UseFacebookAuthentication(
-            //    appId: "",
-            //    appSecret: "");
+            //   appId: "",
+            //   appSecret: "");
 
             app.UseGoogleAuthentication();
         }
